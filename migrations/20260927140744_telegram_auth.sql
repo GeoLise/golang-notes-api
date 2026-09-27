@@ -1,0 +1,10 @@
+-- +goose Up
+DELETE FROM users;
+ALTER TABLE users ADD COLUMN telegram_id BIGINT NOT NULL UNIQUE;
+ALTER TABLE users ADD COLUMN username VARCHAR(255) NOT NULL;
+ALTER TABLE users DROP COLUMN age;
+
+-- +goose Down
+ALTER TABLE users ADD COLUMN age INT NOT NULL DEFAULT 0;
+ALTER TABLE users DROP COLUMN username;
+ALTER TABLE users DROP COLUMN telegram_id;

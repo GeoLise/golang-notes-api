@@ -4,7 +4,8 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"notes-api/internal/user"
+	"notes-api/internal/handlers"
+	"notes-api/internal/storage"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -33,8 +34,8 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	userRepo := user.NewRepository(pool, rdb)
-	userHandler := user.NewHandler(userRepo)
+	userRepo := storage.NewUsers(pool, rdb)
+	userHandler := handlers.NewUsers(userRepo)
 	userHandler.Register(mux)
 
 	port := os.Getenv("PORT")
