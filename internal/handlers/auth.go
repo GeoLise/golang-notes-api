@@ -23,6 +23,8 @@ func NewAuth(sessionsRepo *storage.Sessions, logincodesRepo *storage.LoginCodes)
 func (h *Auth) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/get-auth-link", h.GetAuthLink)
 	mux.HandleFunc("GET /auth/confirm", h.Confirm)
+	mux.HandleFunc("GET /auth/me", h.Me)
+
 }
 
 func (h *Auth) GetAuthLink(w http.ResponseWriter, r *http.Request) {
@@ -74,4 +76,22 @@ func (h *Auth) Confirm(w http.ResponseWriter, r *http.Request) {
 
 	respond.JSON(w, http.StatusOK, map[string]string{"token": sessionToken})
 
+}
+
+func (h *Auth) Me(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+
+	if token == "" {
+		respond.Error(w, http.StatusUnauthorized, "No token")
+		return
+	}
+
+	user, err := h.sessionsRepo.GetByToken(r.Context(), token)
+
+	if err != nil {
+		respond.Error(w, http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	respond.JSON(w, http.StatusOK, user)
 }
