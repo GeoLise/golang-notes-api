@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"notes-api/internal/bot"
 	"notes-api/internal/handlers"
 	"notes-api/internal/storage"
 	"os"
@@ -38,7 +39,18 @@ func main() {
 	userHandler := handlers.NewUsers(userRepo)
 	userHandler.Register(mux)
 
+	sessionRepo := storage.NewSessions(pool)
+	logincodesRepo := storage.NewLoginCodes(rdb)
+	authHandler := handlers.NewAuth(sessionRepo, logincodesRepo)
+	authHandler.Register(mux)
+
 	port := os.Getenv("PORT")
+
+	go func() {
+		if err := bot.Run(context, os.Getenv("TELEGRAM_BOT_TOKEN"), logincodesRepo, userRepo); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	log.Println("Server is running on port " + port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
