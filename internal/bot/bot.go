@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"notes-api/internal/storage"
 	"strings"
@@ -65,6 +66,7 @@ func startHandler(logincodesStorage *storage.LoginCodes, usersStorage *storage.U
 }
 
 func defaultHandler(ctx context.Context, b *tgbot.Bot, update *models.Update) {
+	fmt.Println("test")
 	if update.Message == nil {
 		return
 	}

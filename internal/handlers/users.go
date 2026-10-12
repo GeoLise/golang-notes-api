@@ -19,34 +19,11 @@ func NewUsers(repo *storage.Users) *Users {
 }
 
 func (h *Users) Register(mux *http.ServeMux) {
-	mux.HandleFunc("POST /users", h.create)
 	mux.HandleFunc("GET /users", h.getAll)
 	mux.HandleFunc("GET /users/{id}", h.getById)
 	mux.HandleFunc("PUT /users/{id}", h.update)
 	mux.HandleFunc("DELETE /users/{id}", h.delete)
 
-}
-
-func (h *Users) create(w http.ResponseWriter, r *http.Request) {
-	var u models.User
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
-		respond.Error(w, http.StatusBadRequest, "JSON говно прислали")
-		return
-	}
-
-	if err := u.Validate(); err != nil {
-		respond.Error(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	created, err := h.repo.Create(r.Context(), u)
-
-	if err != nil {
-		respond.ServerError(w, "create user", err)
-		return
-	}
-
-	respond.JSON(w, http.StatusCreated, created)
 }
 
 func (h *Users) getAll(w http.ResponseWriter, r *http.Request) {

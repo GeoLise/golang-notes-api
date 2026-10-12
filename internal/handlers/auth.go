@@ -24,6 +24,7 @@ func (h *Auth) Register(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/get-auth-link", h.GetAuthLink)
 	mux.HandleFunc("GET /auth/confirm", h.Confirm)
 	mux.HandleFunc("GET /auth/me", h.Me)
+	mux.HandleFunc("GET /auth/test", h.Test)
 
 }
 
@@ -94,4 +95,8 @@ func (h *Auth) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond.JSON(w, http.StatusOK, user)
+}
+
+func (h *Auth) Test(w http.ResponseWriter, r *http.Request) {
+	respond.JSON(w, http.StatusOK, "Hello")
 }

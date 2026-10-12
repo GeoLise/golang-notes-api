@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"notes-api/internal/models"
-	"time"
+	"strconv"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,14 +21,10 @@ func NewUsers(db *pgxpool.Pool, cache *redis.Client) *Users {
 	return &Users{db: db, cache: cache}
 }
 
-func cacheKey(name string, id int) string {
-	return fmt.Sprintf("%s:%d", name, id)
-}
-
 func (r *Users) Create(ctx context.Context, u models.User) (models.User, error) {
 	err := r.db.QueryRow(ctx,
 		`INSERT INTO users (name)
-		VALUES ($1, $2)
+		VALUES ($1)
 		RETURNING id, created_at`,
 		u.Name,
 	).Scan(&u.Id, &u.CreatedAt)
@@ -61,7 +56,7 @@ func (r *Users) GetAll(ctx context.Context) ([]models.User, error) {
 
 func (r *Users) GetById(ctx context.Context, id int) (models.User, error) {
 
-	key := cacheKey("user", id)
+	key := getCacheKey("user", strconv.Itoa(id))
 
 	if data, err := r.cache.Get(ctx, key).Bytes(); err == nil {
 		var u models.User
@@ -86,7 +81,7 @@ func (r *Users) GetById(ctx context.Context, id int) (models.User, error) {
 	}
 
 	if data, err := json.Marshal(u); err == nil {
-		r.cache.Set(ctx, key, data, time.Second*60*60*24)
+		r.cache.Set(ctx, key, data, DEFAULT_TTL)
 	}
 
 	return u, err
@@ -107,7 +102,7 @@ func (r *Users) Update(ctx context.Context, id int, u models.User) (models.User,
 		return models.User{}, err
 	}
 
-	r.cache.Del(ctx, cacheKey("user", u.Id))
+	r.cache.Del(ctx, getCacheKey("user", strconv.Itoa(u.Id)))
 
 	return u, err
 }
@@ -144,6 +139,6 @@ func (r *Users) UpsertByTelegram(ctx context.Context, telegramID int64, username
 		return models.User{}, err
 	}
 
-	r.cache.Del(ctx, cacheKey("user", u.Id))
+	r.cache.Del(ctx, getCacheKey("user", strconv.Itoa(u.Id)))
 	return u, nil
 }
